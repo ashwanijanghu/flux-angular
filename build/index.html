@@ -22,14 +22,18 @@
                 comments: []
               };
           })
-          .store('AppStore', function (flux, Mixin) {
+          .store('AppStore', function (flux, Mixin, $timeout) {
+            var that = this;
+
             return {
               test: true,
               comments: [],
               handlers: {
                 addComment: function (title) {
-                  this.comments.push({title: title, created: Date.now() });
-                  this.emit("change");
+                  $timeout(function() {
+                    this.comments.push({title: title, created: Date.now() });
+                    this.emit("change");
+                  }.bind(this), 500);
                 },
                 changeTest: function () {
                   this.test = !this.test;
