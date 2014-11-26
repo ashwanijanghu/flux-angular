@@ -2,7 +2,7 @@ var angular = global.angular || require('angular');
 var safeDeepClone = require('./safeDeepClone.js');
 
 var Dispatchr = require('dispatchr')();
-var createStore = require('dispatchr/utils/createStore');
+var createStore = require('./createStore');
 var util = require('util');
 
 var Flux = (function() {

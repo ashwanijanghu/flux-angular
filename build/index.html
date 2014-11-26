@@ -40,7 +40,7 @@
           })
           .controller('CommentsController', function ($scope, AppStore, flux) {
 
-            $scope.$listenTo(AppStore, "change", function() {
+            $scope.$listenTo(AppStore, "*", function() {
               $scope.comments = AppStore.get('comments');
               $scope.test = AppStore.get('test');
             });
