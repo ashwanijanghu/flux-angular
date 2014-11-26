@@ -38,8 +38,7 @@
               }
             }
           })
-          .controller('CommentsController', function ($scope, AppStore, flux) {
-
+          .controller('CommentsController', function ($scope, AppStore, flux, $timeout) {
             $scope.$listenTo(AppStore, "*", function() {
               $scope.comments = AppStore.get('comments');
               $scope.test = AppStore.get('test');
@@ -50,10 +49,9 @@
               flux.dispatch('addComment', $scope.title);
               $scope.title = '';
             }
-            setTimeout(function () {
+            $timeout(function () {
               flux.dispatch('changeTest');
             }, 1000);
-
           })
     </script>
   </body>

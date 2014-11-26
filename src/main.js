@@ -69,16 +69,8 @@ var app = angular.module('flux', [])
 .service('flux', Flux)
 .run(['$rootScope', '$timeout', function($rootScope, $timeout) {
   $rootScope.$listenTo = function (store, eventName, callback) {
-    var scope = this;
     callback = callback.bind(this);
-    store.addListener(eventName, function() {
-      var args = arguments;
-
-      $timeout(function() {
-        callback.apply(scope, args);
-      });
-    });
-
+    store.addListener(eventName, callback);
     this.$on('$destroy', function () {
       store.removeListener(eventName, callback);
     });
