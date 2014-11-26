@@ -67,7 +67,7 @@ angular.module = function() {
 
 var app = angular.module('flux', [])
 .service('flux', Flux)
-.run(['$rootScope', '$timeout', function($rootScope, $timeout) {
+.run(['$rootScope', function($rootScope) {
   $rootScope.$listenTo = function (store, eventName, callback) {
     callback = callback.bind(this);
     store.addListener(eventName, callback);
