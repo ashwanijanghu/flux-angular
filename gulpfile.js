@@ -67,26 +67,6 @@ gulp.task('default', function () {
 
 });
 
-gulp.task('deploy', function () {
-
-  runBrowserifyTask({
-    watch: false,
-    dest: './releases/' + package.version,
-    uglify: true,
-    debug: false,
-    name: 'flux-angular-' + package.version + '.min.js'
-  });
-
-  runBrowserifyTask({
-    watch: false,
-    dest: './releases/' + package.version,
-    uglify: false,
-    debug: false,
-    name: 'flux-angular-' + package.version + '.js'
-  });
-
-});
-
 gulp.task('test', shell.task([
     './node_modules/.bin/jasmine-node ./specs --autotest --watch ./src --color'
 ]));

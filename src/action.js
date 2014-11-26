@@ -6,7 +6,7 @@
  * ====================================================================================
  */
 
-var EventEmitter = require('./EventEmitter.js');
+var EventEmitter = require('events').EventEmitter;
 var safeDeepClone = require('./safeDeepClone.js');
 
 var createActionFunction = function (actionName) {

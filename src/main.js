@@ -1,6 +1,6 @@
 var angular = global.angular || require('angular');
 var action = require('./action.js');
-var EventEmitter = require('./EventEmitter.js');
+var EventEmitter = require('events').EventEmitter;
 var safeDeepClone = require('./safeDeepClone.js');
 
 function mergeStore (mixins, source) {
@@ -82,7 +82,7 @@ var flux = {
 }
 
 angular.module('flux', [])
-.constant('flux', flux).
+.constant('flux', flux)
 .run(['$rootScope', function($rootScope) {
   $rootScope.$listenTo = function (store, eventName, callback) {
     callback = callback.bind(this);
