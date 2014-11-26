@@ -60,8 +60,8 @@ gulp.task('default', function () {
   runBrowserifyTask({
     watch: true,
     dest: './build',
-    uglify: false,
-    debug: true,
+    uglify: true,
+    debug: false,
     name: 'flux-angular.js'
   });
 

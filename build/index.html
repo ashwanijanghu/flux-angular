@@ -5,6 +5,7 @@
     <div ng-controller="CommentsController">
       <form ng-submit="addComment()">
         <input type="text" ng-model="title" ng-disabled="test"/>
+        {{ test | json }}
       </form>
       <ul>
         <li ng-repeat="comment in comments">
@@ -16,66 +17,57 @@
     <script src="flux-angular.js"></script>
     <script>
         angular.module('app', ['flux'])
-          .factory('actions', function (flux) {
-
-            return flux.actions([
-              'addComment',
-              'changeTest'
-            ]);
-
-          })
           .factory('Mixin', function () {
               return {
                 comments: []
               };
           })
-          .factory('AppStore', function (flux, actions, Mixin) {
+          .store('AppStore', function (flux, Mixin) {
 
-            return flux.store({
-              mixins: [Mixin],
-              actions: [
-                actions.addComment,
-                actions.changeTest
-              ],
+            return {
               test: true,
-              addComment: function (title) {
-                this.comments.push({title: title, created: Date.now() });
-                this.emit("change");
-              },
-              changeTest: function () {
-                this.test = !this.test;
-                this.emit("change");
-              },
-              exports: {
-                getComments: function () {
-                  return this.comments;
+              comments: [],
+              handlers: {
+                addComment: function (title) {
+                  this.comments.push({title: title, created: Date.now() });
+                  this.emit("change");
                 },
-                getTest: function () {
-                  return this.test;
+                changeTest: function () {
+                  this.test = !this.test;
+                  this.emit("change");
                 }
+              },
+              getComments: function () {
+                return this.comments;
+              },
+              getTest: function () {
+                return this.test;
               }
-            });
+            }
           })
-          .controller('CommentsController', function ($scope, AppStore, actions) {
+          .controller('CommentsController', function ($scope, AppStore, flux) {
 
-            $scope.$listenTo(AppStore, "all", function() {
-              $scope.comments = AppStore.getComments();
-              $scope.test = AppStore.getTest();
+            $scope.$listenTo(AppStore, "change", function() {
+              $scope.comments = AppStore.get('comments');
+              $scope.test = AppStore.get('test');
+            });
+
+
+            AppStore.foobar = 'asda'
+            AppStore.on('change', function() {
+              console.log('ok');
             });
 
             $scope.title = '';
             $scope.addComment = function () {
-              actions.addComment($scope.title);
+              flux.dispatch('addComment', $scope.title);
               $scope.title = '';
             }
             setTimeout(function () {
-              actions.changeTest()
+              flux.dispatch('changeTest');
             }, 1000);
 
           })
-          .run(function (actions) {
-            //actions.addComment();
-          });
     </script>
   </body>
 </html>

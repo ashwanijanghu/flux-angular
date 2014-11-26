@@ -1,92 +1,84 @@
 var angular = global.angular || require('angular');
-var action = require('./action.js');
-var EventEmitter = require('events').EventEmitter;
 var safeDeepClone = require('./safeDeepClone.js');
 
-function mergeStore (mixins, source) {
+var Dispatchr = require('dispatchr')();
+var createStore = require('dispatchr/utils/createStore');
+var util = require('util');
 
-  var exports = Object.create(EventEmitter.prototype);
+var Flux = (function() {
+  function Flux() {
+    Dispatchr.apply(this, arguments);
+  }
 
-  source.actions = source.actions || [];
-  source.exports = source.exports || {};
+  Object.keys(Dispatchr).forEach(function(key) {
+    Flux[key] = Dispatchr[key];
+  });
 
-  if (mixins && Array.isArray(mixins)) {
+  util.inherits(Flux, Dispatchr);
 
-    // Merge mixins, state, handlers and exports
-    mixins.forEach(function (mixin) {
-      Object.keys(mixin).forEach(function (key) {
+  Flux.prototype.createStore = function(spec) {
+    spec = spec || {};
 
-        switch(key) {
-          case 'mixins':
-            // Return as actions and exports are handled on top traversal level
-            return mergeStore(mixin.mixins, mixin);
+    if(spec.state) {
+      spec.rehydrate = function(state) {
+        this.state = state;
+      };
 
-          case 'actions':
-            source.actions = source.actions.concat(mixin.actions);
-            break;
-          case 'exports':
-            Object.keys(mixin.exports).forEach(function (key) {
-              source.exports[key] = mixin.exports[key];
-            });
-            break;
-          default:
-            if (source[key]) {
-              throw new Error('The property: ' + key + ', already exists. Can not merge mixin with keys: ' + Object.keys(mixin).join(', '));
-            }
-          source[key] = mixin[key];
-        }
+      spec.dehydrate = function() {
+        return this.state;
+      };
+    }
 
+    spec.get = function(key) {
+      return safeDeepClone('[Circular]', [], this[key]);
+    }
+
+    var store = createStore(spec);
+
+    Flux.registerStore(store);
+
+    return store;
+  }
+
+  return Flux;
+})();
+
+
+var moduleConstructor = angular.module;
+
+angular.module = function() {
+  var moduleInstance = moduleConstructor.apply(angular, arguments);
+
+  moduleInstance.store = function(storeName, storeDefinition) {
+    this.factory(storeName, ['$injector', 'flux', function($injector, flux) {
+      var storeConfig = $injector.invoke(storeDefinition);
+      storeConfig.storeName = storeName;
+
+      var Store = flux.createStore(storeConfig);
+
+      return flux.getStore(storeName);
+    }]);
+
+    return this;
+  }
+
+  return moduleInstance;
+}
+
+var app = angular.module('flux', [])
+.service('flux', Flux)
+.run(['$rootScope', '$timeout', function($rootScope, $timeout) {
+  $rootScope.$listenTo = function (store, eventName, callback) {
+    var scope = this;
+    callback = callback.bind(this);
+    store.addListener(eventName, function() {
+      var args = arguments;
+
+      $timeout(function() {
+        callback.apply(scope, args);
       });
     });
 
-  }
-
-  source.emit = function (eventName) {
-    exports.emit(eventName);
-    if (exports._events['all']) {
-      exports._events['all'].forEach(function (event) {
-        event.listener();
-      });
-    }
-  };
-
-  // Register actions
-  source.actions.forEach(function (action) {
-    if (!action || !action.handlerName) {
-      throw new Error('This is not an action ' + action);
-    }
-    if (!source[action.handlerName]) {
-      throw new Error('There is no handler for action: ' + action);
-    }
-    action.on('trigger', source[action.handlerName].bind(source));
-  });
-
-  // Register exports
-  Object.keys(source.exports).forEach(function (key) {
-    exports[key] = function () {
-      return safeDeepClone('[Circular]', [], source.exports[key].apply(source, arguments));
-    };
-  });
-
-  return exports;
-
-}
-
-var flux = {
-  actions: function () {
-    return action.apply(null, arguments);
-  },
-  store: function (definition) {
-    return mergeStore(definition.mixins, definition);
-  }
-}
-
-angular.module('flux', [])
-.constant('flux', flux)
-.run(['$rootScope', function($rootScope) {
-  $rootScope.$listenTo = function (store, eventName, callback) {
-    callback = callback.bind(this);
-    store.addListener(eventName, callback);
     this.$on('$destroy', function () {
       store.removeListener(eventName, callback);
     });

@@ -39,6 +39,7 @@
     "webpack": "^1.4.13"
   },
   "dependencies": {
-    "angular": "~1.2"
+    "angular": "~1.2",
+    "dispatchr": "^0.2.8"
   }
 }
