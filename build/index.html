@@ -23,7 +23,6 @@
               };
           })
           .store('AppStore', function (flux, Mixin) {
-
             return {
               test: true,
               comments: [],
@@ -44,12 +43,6 @@
             $scope.$listenTo(AppStore, "change", function() {
               $scope.comments = AppStore.get('comments');
               $scope.test = AppStore.get('test');
-            });
-
-
-            AppStore.foobar = 'asda'
-            AppStore.on('change', function() {
-              console.log('ok');
             });
 
             $scope.title = '';
